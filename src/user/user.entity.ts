@@ -12,10 +12,10 @@ import * as bcrypt from 'bcrypt';
        @Column({ })
        email: string;
 
-       @Column({ nullable: true })
+       @Column({ default: "" })
        bio: string;
 
-       @Column({ nullable: true })
+       @Column({ default: "" })
        image: string;
 
         @Column()

@@ -8,7 +8,7 @@ const config: PostgresConnectionOptions = {
     password: 'Akinola@2000',
     database: 'socials',
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
-    synchronize: true, //** Don't use this in production! */
+    synchronize: true,
 }
 
 export default config;
