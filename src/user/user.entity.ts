@@ -19,7 +19,7 @@ import * as bcrypt from 'bcrypt';
        image: string;
 
         @Column()
-        password: string;
+        password?: string;
 
         @BeforeInsert()
         @BeforeUpdate()

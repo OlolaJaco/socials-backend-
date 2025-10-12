@@ -4,6 +4,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { LoginDto } from '@/user/dto/LoginUser.dto';
+import { compare } from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -21,6 +23,23 @@ export class UserService {
 
         const user = this.userRepository.create(createUserDto);
         await this.userRepository.save(user);
+        return this.generateUserResponse(user);
+    }
+
+    async loginUser(loginUserDto: LoginDto): Promise<{ user: any }> {
+
+        const user = await this.userRepository.findOne({ where: { email: loginUserDto.email } });
+        
+        if (!user) {
+            throw new HttpException('Invalid email or password', HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        const matchPassword = await compare(loginUserDto.password, user.password);
+
+        if (!matchPassword) {
+            throw new HttpException('Invalid email or password', HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        delete user.password;
         return this.generateUserResponse(user);
     }
 
