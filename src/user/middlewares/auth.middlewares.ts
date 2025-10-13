@@ -18,10 +18,7 @@ export class AuthMiddleware implements NestMiddleware {
 
   async use(req: AuthRequest, res: Response, next: NextFunction) {
     // Log the authorization header for debugging
-    // console.log('Headers received:', req.headers);f
-    
     if (!req.headers.authorization) {
-      console.log('No authorization header found');
       req.user = undefined;
       return next();
     }
@@ -34,21 +31,18 @@ export class AuthMiddleware implements NestMiddleware {
       // Assume the entire header is the token
       token = req.headers.authorization;
     }
-    
-    console.log('Token found:', token);
 
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: jwtConstants.secret,
       });
       
-      console.log('Valid token, payload:', payload);
+      // console.log('Valid token, payload:', payload);
       
       // Assign the payload to the request object
       req.user = payload;
       return next();
     } catch (error) {
-      console.log('Token verification failed:', error.message);
       throw new UnauthorizedException('Invalid or expired token');
     }
   }
