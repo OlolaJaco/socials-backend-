@@ -1,4 +1,4 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import * as bcrypt from 'bcrypt';
 
 @Entity({ name: 'users' })
@@ -29,4 +29,7 @@ import * as bcrypt from 'bcrypt';
                 this.password = await bcrypt.hash(this.password, salt);
             }
         }
+
+        @UpdateDateColumn()
+        updatedAt: Date;
     }

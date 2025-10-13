@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from '@/user/dto/LoginUser.dto';
 import { compare } from 'bcrypt';
+import { UpdateUserDto } from '@/user/dto/UpdateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -56,16 +57,33 @@ export class UserService {
 
     return this.generateUserResponse(user);
   }
-  
-  // Get a single user by ID
+
+  // * Update User
+  async updateUser(id: number, updateData: UpdateUserDto): Promise<{ user: any }> {
+    const user = await this.findById(id);
+
+    Object.assign(user, updateData);
+    await this.userRepository.save(user);
+
+    // Clear query cache for this entity
+    await this.userRepository.manager.connection.queryResultCache?.remove([
+      'users',
+    ]);
+
+    // Get a fresh copy of the user to return
+    const updatedUser = await this.findById(id);
+    return this.generateUserResponse(updatedUser);
+  }
+
+  //* Get a single user by ID
   async findById(id: number): Promise<UserEntity> {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ where: { id }, cache: false });
 
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
-    delete user.password
+    delete user.password;
 
     return user;
   }
