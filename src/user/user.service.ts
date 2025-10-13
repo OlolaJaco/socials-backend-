@@ -9,51 +9,82 @@ import { compare } from 'bcrypt';
 
 @Injectable()
 export class UserService {
-    constructor(
-        @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
-        private readonly jwtService: JwtService
-    ) {}
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    private readonly jwtService: JwtService,
+  ) {}
 
-    async createUser(createUserDto: CreateUserDto): Promise<{ user: any }> {
-
-        if (await this.userRepository.findOne({ where: { email: createUserDto.email } })) {
-            throw new HttpException('Email already in use', HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
-
-        const user = this.userRepository.create(createUserDto);
-        await this.userRepository.save(user);
-        return this.generateUserResponse(user);
+  async createUser(createUserDto: CreateUserDto): Promise<{ user: any }> {
+    if (
+      await this.userRepository.findOne({
+        where: { email: createUserDto.email },
+      })
+    ) {
+      throw new HttpException(
+        'Email already in use',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
 
-    async loginUser(loginUserDto: LoginDto): Promise<{ user: any }> {
+    const user = this.userRepository.create(createUserDto);
+    await this.userRepository.save(user);
+    return this.generateUserResponse(user);
+  }
 
-        const user = await this.userRepository.findOne({ where: { email: loginUserDto.email } });
-        
-        if (!user) {
-            throw new HttpException('Invalid email or password', HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-        const matchPassword = await compare(loginUserDto.password, user.password);
+  async loginUser(loginUserDto: LoginDto): Promise<{ user: any }> {
+    const user = await this.userRepository.findOne({
+      where: { email: loginUserDto.email },
+    });
 
-        if (!matchPassword) {
-            throw new HttpException('Invalid email or password', HttpStatus.UNPROCESSABLE_ENTITY);
-        }
+    if (!user) {
+      throw new HttpException(
+        'Invalid email or password',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    const matchPassword = await compare(loginUserDto.password, user.password);
 
-        delete user.password;
-        return this.generateUserResponse(user);
+    if (!matchPassword) {
+      throw new HttpException(
+        'Invalid email or password',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
 
-    generateToken(user: UserEntity): string {
-        const payload = { sub: user.id, username: user.username, email: user.email };
-        return this.jwtService.sign(payload);
+    delete user.password;
+
+    return this.generateUserResponse(user);
+  }
+  
+  // Get a single user by ID
+  async findById(id: number): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
-    generateUserResponse(user: UserEntity) {
-        return {
-            user: {
-                ...user,
-                token: this.generateToken(user)
-            }
-        }
-    }
+    delete user.password
+
+    return user;
+  }
+
+  generateToken(user: UserEntity): string {
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      email: user.email,
+    };
+    return this.jwtService.sign(payload);
+  }
+
+  generateUserResponse(user: UserEntity) {
+    return {
+      user: {
+        ...user,
+        token: this.generateToken(user),
+      },
+    };
+  }
 }
