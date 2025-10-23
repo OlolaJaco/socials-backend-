@@ -4,7 +4,7 @@ import { IPostResponse } from '@/post/types/postResponse.interface';
 import { UserEntity } from '@/user/user.entity';
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 
 @Injectable()
 export class PostService {
@@ -47,6 +47,19 @@ export class PostService {
   }
 
   async getSinglePost( slug: string ) : Promise<PostEntity> {
+    const post = await this.findBySlug(slug);
+    return post;
+  }
+
+  async deletePost( slug: string, currentUserId: number ) : Promise<DeleteResult> {
+    const post = await this.findBySlug(slug);
+    if (post.authorId !== currentUserId) {
+        throw new HttpException('You are not authorized to delete this post for you\'re not the owner', HttpStatus.FORBIDDEN)
+    }
+    return this.postRepository.delete({ slug });
+  }
+
+  async findBySlug(slug: string): Promise<PostEntity> {
     const post = await this.postRepository.findOne({
         where: { slug }
     })
@@ -55,7 +68,7 @@ export class PostService {
         throw new HttpException('Article not found', HttpStatus.NOT_FOUND)
     }
 
-    return post 
+    return post;
   }
 
   generatePostResponse(post: PostEntity): IPostResponse {

@@ -10,6 +10,7 @@ import {
   ValidationPipe,
   Get,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { CreatePostDto } from '@/post/dto/createPost.dto';
 import { PostEntity } from '@/post/post.entity';
@@ -39,6 +40,22 @@ export class PostController {
     const newPost = await this.postService.createPost(request.user.sub, createPostDto);
 
     return this.postService.generatePostResponse(newPost);
+  }
+
+  @Delete(':slug')
+  // @UseGuards(AuthGuard)
+  async deletePost(@Param('slug') slug: string, @Req() request: AuthRequest ) {
+
+    if (!request.user || request.user.sub === undefined) {
+      throw new HttpException(
+        'User not authenticated',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const post = await this.postService.deletePost(slug, request?.user.sub);
+
+    return { message: 'Post deleted successfully' };
   }
 
   @Get(':slug')
