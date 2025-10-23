@@ -2,7 +2,7 @@ import { CreatePostDto } from '@/post/dto/createPost.dto';
 import { PostEntity } from '@/post/post.entity';
 import { IPostResponse } from '@/post/types/postResponse.interface';
 import { UserEntity } from '@/user/user.entity';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -44,6 +44,18 @@ export class PostService {
     }
 
     return postWithAuthor;
+  }
+
+  async getSinglePost( slug: string ) : Promise<PostEntity> {
+    const post = await this.postRepository.findOne({
+        where: { slug }
+    })
+
+    if (!post) {
+        throw new HttpException('Article not found', HttpStatus.NOT_FOUND)
+    }
+
+    return post 
   }
 
   generatePostResponse(post: PostEntity): IPostResponse {

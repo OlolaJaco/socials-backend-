@@ -8,6 +8,8 @@ import {
   HttpStatus,
   UsePipes,
   ValidationPipe,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { CreatePostDto } from '@/post/dto/createPost.dto';
 import { PostEntity } from '@/post/post.entity';
@@ -37,5 +39,11 @@ export class PostController {
     const newPost = await this.postService.createPost(request.user.sub, createPostDto);
 
     return this.postService.generatePostResponse(newPost);
+  }
+
+  @Get(':slug')
+  async getPost(@Param('slug') slug: string ): Promise<IPostResponse> {
+    const post = await this.postService.getSinglePost(slug);
+    return this.postService.generatePostResponse(post);
   }
 }
