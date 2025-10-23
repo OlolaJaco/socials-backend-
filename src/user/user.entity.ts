@@ -1,5 +1,6 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import * as bcrypt from 'bcrypt';
+import { PostEntity } from "@/post/post.entity";
 
 @Entity({ name: 'users' })
     export class UserEntity {
@@ -20,6 +21,9 @@ import * as bcrypt from 'bcrypt';
 
         @Column()
         password?: string;
+
+        @OneToMany(() => PostEntity, post => post.author)
+        posts: PostEntity[];
 
         @BeforeInsert()
         @BeforeUpdate()
