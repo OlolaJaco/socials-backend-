@@ -1,4 +1,5 @@
 import { CreatePostDto } from '@/post/dto/createPost.dto';
+import { UpdatePostDto } from '@/post/dto/updatePost.dto';
 import { PostEntity } from '@/post/post.entity';
 import { IPostResponse } from '@/post/types/postResponse.interface';
 import { UserEntity } from '@/user/user.entity';
@@ -57,6 +58,21 @@ export class PostService {
         throw new HttpException('You are not authorized to delete this post for you\'re not the owner', HttpStatus.FORBIDDEN)
     }
     return this.postRepository.delete({ slug });
+  }
+
+  async updatePost( slug: string, currentUserId: number, updatePostDto: UpdatePostDto): Promise<PostEntity> {
+    const post = await await this.findBySlug(slug);
+    if (post.authorId !== currentUserId) {
+        throw new HttpException('You are not authorized to update this post for you\'re not the owner', HttpStatus.FORBIDDEN)
+    }
+
+    if (updatePostDto.title) {
+        post.slug = this.generateSlug(updatePostDto.title);
+    }
+
+    Object.assign(post, updatePostDto);
+
+    return await this.postRepository.save(post);
   }
 
   async findBySlug(slug: string): Promise<PostEntity> {
